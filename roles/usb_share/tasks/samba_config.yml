@@ -1,0 +1,27 @@
+---
+# file: roles/usb_share/tasks/samba_config.yml
+#- name: install samba and samba-common-bin
+#  package:
+#    name: "{{ item }}"
+#    state: present
+#  loop:
+#    - samba
+#    - samba-common-bin
+
+- name: add samba config
+  lineinfile:
+    path: /etc/samba/smb.conf
+    line: "{{ item }}"
+  loop:
+    - "[lailaps]"
+    - comment = lailaps share
+    - path = /mnt/usb_share
+    - read only = no
+    - guest ok = yes
+#    - create mask = 0777
+#    - directory mask = 0777
+#    - writable = true
+#    - security = share
+#    - browseable = true
+#    - public = yes
+  notify: "restart smbd service"
