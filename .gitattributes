@@ -2,3 +2,5 @@
 file_upload_watchdog.yml filter=crypt diff=crypt merge=crypt
 file_upload.py filter=crypt diff=crypt merge=crypt
 roles/usb_share/defaults/main.yml filter=crypt diff=crypt merge=crypt
+usb_share.yml filter=crypt diff=crypt merge=crypt
+README.md filter=crypt diff=crypt merge=crypt
