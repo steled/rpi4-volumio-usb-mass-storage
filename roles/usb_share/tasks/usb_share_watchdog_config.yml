@@ -1,0 +1,27 @@
+---
+# file: roles/usb_share/tasks/watchdog_config.yml
+- name: copy file usb_share.py to /usr/local/share
+  copy:
+    dest: /usr/local/share
+    group: root
+    mode: '0755'
+    owner: root
+    src: usb_share.py
+
+- name: copy file usb_share.service to /etc/systemd/system
+  copy:
+    dest: /etc/systemd/system
+    group: root
+    mode: '0644'
+    owner: root
+    src: usb_share.service
+
+- name: systemd reread configs
+  systemd:
+    daemon_reload: yes
+
+- name: enable and start service usb_share.service
+  service:
+    enabled: yes
+    name: usb_share.service
+    state: started

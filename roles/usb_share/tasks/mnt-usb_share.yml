@@ -1,0 +1,19 @@
+---
+# file: roles/usb_share/tasks/mnt-usb_share.yml
+- name: copy file mnt-usb_share.mount to /etc/systemd/system
+  copy:
+    dest: /etc/systemd/system
+    group: root
+    mode: '0644'
+    owner: root
+    src: mnt-usb_share.mount
+
+- name: systemd reread configs
+  systemd:
+    daemon_reload: yes
+
+- name: enable and start service mnt-usb_share.mount
+  service:
+    enabled: yes
+    name: mnt-usb_share.mount
+    state: started

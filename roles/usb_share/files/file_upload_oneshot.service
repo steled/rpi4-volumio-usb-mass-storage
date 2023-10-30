@@ -1,0 +1,9 @@
+[Unit]
+Description=Folder Watchdog one shot service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/systemctl restart file_upload.service
+
+[Install]
+WantedBy=multi-user.target

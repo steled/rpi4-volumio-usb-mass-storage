@@ -1,0 +1,9 @@
+[Unit]
+Description=Run file_upload_oneshot service periodically
+
+[Timer]
+Unit=file_upload_oneshot.service
+OnCalendar=daily
+
+[Install]
+WantedBy=timers.target

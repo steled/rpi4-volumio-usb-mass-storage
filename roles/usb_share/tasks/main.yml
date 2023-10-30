@@ -1,0 +1,13 @@
+---
+# file: roles/usb_share/tasks/main.yml
+- import_tasks: preparation.yml
+- import_tasks: usb_share_watchdog_config.yml
+- import_tasks: samba_config.yml
+- import_tasks: mnt-usb_share.yml
+- import_tasks: file_upload_watchdog.yml
+  delegate_to: 127.0.0.1
+  tags: file_upload
+
+- name: reboot
+  reboot:
+    reboot_timeout: 90

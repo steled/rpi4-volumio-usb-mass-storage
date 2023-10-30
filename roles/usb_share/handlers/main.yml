@@ -1,0 +1,12 @@
+---
+# file: roles/usb_share/tasks/main.yml
+- name: restart smbd
+  service:
+    name: smbd
+    state: restarted
+  listen: "restart smbd service"
+
+- name: restart ssh
+  service:
+    name: sshd
+    state: restarted

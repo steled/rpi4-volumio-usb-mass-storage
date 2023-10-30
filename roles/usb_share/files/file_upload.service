@@ -1,0 +1,9 @@
+[Unit]
+Description=Folder Watchdog service
+
+[Service]
+Type=Simple
+ExecStart=/usr/local/share/file_upload.py
+
+[Install]
+WantedBy=multi-user.target

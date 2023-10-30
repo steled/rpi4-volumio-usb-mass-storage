@@ -1,0 +1,164 @@
+---
+# file: roles/usb_share/tasks/preparation.yml
+# deactivated until fixed in: https://github.com/volumio/Volumio2/issues/1192
+#- name: change password for user volumio
+#  user:
+#    name: volumio
+#    password: "{{ volumio_password }}"
+
+# workaround because of: https://github.com/volumio/Volumio2/issues/1192
+- name: disable ssh PasswordAuthentication for user volumio
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    line: "{{ item }}"
+    state: present
+    insertafter: EOF
+    backup: yes
+  with_items:
+    - "Match User volumio"
+    - "        PasswordAuthentication no"
+  notify:
+    - restart ssh
+
+- name: add dtoverlay to /boot/userconfig.txt
+  lineinfile:
+    path: /boot/userconfig.txt
+    line: dtoverlay=dwc2
+
+- name: add dwc2 to /etc/modules
+  lineinfile:
+    path: /etc/modules
+    line: dwc2
+
+- name: check if /piusb.bin already exists
+  stat:
+    path: /piusb.bin
+    get_checksum: no
+  register: piusb
+
+- name: create piusb.bin file
+  community.general.files.filesize:
+    path: /piusb.bin
+    size: 80G
+    blocksize: 4096B
+  when: not piusb.stat.exists
+
+- name: check if /piusb.bin has NTFS as filesystem
+  shell: lsblk -fno FSTYPE,MOUNTPOINT | grep "ntfs     /mnt/usb_share"
+  ignore_errors: yes
+  register: lsblk
+
+- name: create ntfs filesystem on top of /piusb.bin
+  command: mkntfs -FfI -p 0 -s 512 -S 0 -H 0 /piusb.bin
+  become: yes
+  when: not (lsblk.stdout == "ntfs     /mnt/usb_share")
+
+#- name: resize partition 2 to 10GB
+#  parted:
+#    device: /dev/mmcblk0
+#    number: 2
+#    part_end: "10GB"
+#    resize: yes
+#    unit: "GB"
+#    state: present
+
+#- name: grow the filesystem into space
+#  filesystem:
+#    dev: /dev/mmcblk0p2
+#    fstype: ext4
+#    resizefs: yes
+#  when:
+#    - (ansible_mounts | selectattr('mount','in', '/') | list | first).size_total < 8589934592
+
+#- name: check if 3rd partition already exists
+#  stat:
+#    path: /dev/mmcblk0p3
+#  register: mmcblk0p3
+
+#- name: create new partition
+#  parted:
+#    device: /dev/mmcblk0
+#    fs_type: ntfs
+#    number: 3
+#    part_end: 63GB
+#    part_start: 10GB
+#    part_type: primary
+#    state: present
+#    unit: GB
+#  when: not mmcblk0p3.stat.exists
+
+#- name: create ntfs filesystem
+#  command: mkntfs -f /dev/mmcblk0p3
+#  when: not mmcblk0p3.stat.exists
+
+- name: create mount folder /mnt/usb_share
+  file:
+    mode: '0777'
+    path: /mnt/usb_share
+    state: directory
+
+- name: mount up file /piusb.bin
+  mount:
+    fstype: ntfs
+    opts: rw,relatime,noauto
+    path: /mnt/usb_share
+    src: /piusb.bin
+    state: mounted
+
+#- name: mount up device /dev/mmcblk0p3
+#  mount:
+#    fstype: ntfs
+#    opts: rw,relatime
+#    path: /mnt/usb_share
+#    src: /dev/mmcblk0p3
+#    state: mounted
+
+- name: deactivate wlan power save permanently
+  lineinfile:
+    path: /etc/rc.local
+    insertbefore: 'exit 0'
+    line: '/sbin/iwconfig wlan0 power off'
+
+- name: install python3-apt
+  package:
+    name: python3-apt
+    state: present
+
+- name: install python3-watchdog
+  package:
+    name: python3-watchdog
+    state: present
+
+- name: remove bluetooth stuff
+  package:
+    name: bluez
+    state: absent
+
+# don't run at volumio
+# - name: run apt-get update
+#   apt:
+#     update_cache: yes
+
+- name: remove useless packages from the cache
+  apt:
+    autoclean: yes
+
+- name: Set timezone to Europe/Berlin
+  ansible.builtin.file:
+    src: /usr/share/zoneinfo/Europe/Berlin
+    dest: /etc/localtime
+    force: true
+    owner: root
+    group: root
+    state: link
+
+- name: Run dpkg-reconfigure --frontend noninteractive tzdata
+  ansible.builtin.command: dpkg-reconfigure --frontend noninteractive tzdata
+
+- name: update /etc/fstab
+  ansible.posix.mount:
+    path: /tmp
+    src: tmpfs
+    fstype: tmpfs
+    opts: defaults,noatime,mode=0777
+    state: present

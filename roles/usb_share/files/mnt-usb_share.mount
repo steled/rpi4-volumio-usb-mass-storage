@@ -1,0 +1,13 @@
+[Unit]
+SourcePath=/etc/fstab
+Documentation=man:fstab(5) man:systemd-fstab-generator(8)
+After=ssh.service
+
+[Mount]
+Where=/mnt/usb_share
+What=/piusb.bin
+Type=ntfs
+Options=rw,relatime
+
+[Install]
+WantedBy=multi-user.target
