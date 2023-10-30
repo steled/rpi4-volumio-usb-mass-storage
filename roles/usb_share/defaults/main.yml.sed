@@ -1,0 +1,1 @@
+s/\(volumio_password: "\).*/\1<REDACTED>"/

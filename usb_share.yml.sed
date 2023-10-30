@@ -1,0 +1,1 @@
+s/\(- hosts: \).*/\1<REDACTED>/
