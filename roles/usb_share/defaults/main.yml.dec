@@ -1,0 +1,3 @@
+---
+# file: roles/usb_share/defaults/main.yml
+volumio_password: "<REDACTED>"

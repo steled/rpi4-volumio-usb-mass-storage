@@ -1,0 +1,6 @@
+---
+# file: usb_share.yml
+- hosts: <REDACTED>
+  become: yes
+  roles:
+    - role: usb_share

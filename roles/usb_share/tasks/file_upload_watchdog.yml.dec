@@ -1,0 +1,48 @@
+---
+# file: roles/usb_share/tasks/file_upload_watchdog.yml
+- name: copy file file_upload.py to /usr/local/share
+  copy:
+    dest: /usr/local/share
+    group: root
+    mode: '0755'
+    owner: root
+    src: file_upload.py
+    
+- name: copy file file_upload.service to /etc/systemd/system
+  copy:
+    dest: /etc/systemd/system
+    group: root
+    mode: '0644'
+    owner: root
+    src: file_upload.service
+
+- name: copy file file_upload.timer to /etc/systemd/system
+  copy:
+    dest: /etc/systemd/system
+    group: root
+    mode: '0644'
+    owner: root
+    src: file_upload.timer
+
+- name: copy file file_upload_oneshot.service to /etc/systemd/system
+  copy:
+    dest: /etc/systemd/system
+    group: root
+    mode: '0644'
+    owner: root
+    src: file_upload_oneshot.service
+
+- name: systemd reread configs
+  systemd:
+    daemon_reload: yes
+
+- name: enable and start timer file_upload.timer
+  ansible.builtin.systemd:
+    name: file_upload.timer
+    state: started
+    enabled: yes
+
+- name: add <HOST> to known_hosts file
+  known_hosts:
+    name: <HOST>
+    key: "{{ lookup('pipe', 'ssh-keyscan -t rsa <HOST>') }}"
